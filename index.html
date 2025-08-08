@@ -269,6 +269,28 @@
             font-size: 1.1rem;
             margin-bottom: 0.5rem;
         }
+
+        /* Form success/error message styles */
+        .form-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+        }
+        
+        .form-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .form-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
         
         /* レスポンシブ調整 - モバイル最適化 */
         @media (max-width: 768px) {
@@ -835,13 +857,26 @@ VIP Plan
 <div class="container mx-auto">
 <h2 class="section-title text-center text-white">Get in Touch</h2>
 <div class="max-w-2xl mx-auto">
-<form name="contact" netlify class="space-y-6">
-<div class="mb-4"><label class="block text-white text-sm font-bold mb-2" for="name">Name</label><input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" name="name" placeholder="" type="text" required/></div>
-<div class="mb-4"><label class="block text-white text-sm font-bold mb-2" for="email">Email</label><input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" name="email" placeholder="" type="email" required/></div>
-<div class="mb-4"><label class="block text-white text-sm font-bold mb-2" for="service_website">Service website</label><input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="service_website" name="service_website" placeholder="" type="url"/></div>
-<div class="mb-4"><label class="block text-white text-sm font-bold mb-2" for="message">Message</label><textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="message" name="message" placeholder="" rows="5" required></textarea></div>
+<div id="form-message" class="form-message"></div>
+<form id="contact-form" action="https://formspree.io/f/contact@theviraljapan.com" method="POST" class="space-y-6">
+<div class="mb-4">
+<label class="block text-white text-sm font-bold mb-2" for="name">Name</label>
+<input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" name="name" placeholder="" type="text" required/>
+</div>
+<div class="mb-4">
+<label class="block text-white text-sm font-bold mb-2" for="email">Email</label>
+<input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" name="email" placeholder="" type="email" required/>
+</div>
+<div class="mb-4">
+<label class="block text-white text-sm font-bold mb-2" for="service_website">Service website</label>
+<input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="service_website" name="service_website" placeholder="" type="url"/>
+</div>
+<div class="mb-4">
+<label class="block text-white text-sm font-bold mb-2" for="message">Message</label>
+<textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="message" name="message" placeholder="" rows="5" required></textarea>
+</div>
 <div class="text-center">
-<button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full cta-button" type="submit" style="background-color: #ff3b30;">Send Message</button>
+<button id="submit-btn" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full cta-button" type="submit" style="background-color: #ff3b30;">Send Message</button>
 </div>
 </form>
 </div>
@@ -869,9 +904,10 @@ VIP Plan
 </div>
 </footer>
 
-<!-- モバイルメニューのスクリプト -->
+<!-- Scripts -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Mobile menu functionality
     const hamburgerBtn = document.getElementById('hamburger-btn');
     const mobileMenu = document.getElementById('mobile-menu');
     const mobileMenuClose = document.getElementById('mobile-menu-close');
@@ -904,6 +940,60 @@ VIP Plan
         document.body.style.overflow = '';
       }
     });
+
+    // Contact form functionality
+    const form = document.getElementById('contact-form');
+    const formMessage = document.getElementById('form-message');
+    const submitBtn = document.getElementById('submit-btn');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Show loading state
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending...';
+      formMessage.style.display = 'none';
+
+      // Get form data
+      const formData = new FormData(form);
+
+      // Send to Formspree
+      fetch('https://formspree.io/f/contact@theviraljapan.com', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+      .then(response => {
+        if (response.ok) {
+          // Success
+          formMessage.textContent = 'Thank you! Your message has been sent successfully. We will get back to you soon.';
+          formMessage.className = 'form-message form-success';
+          formMessage.style.display = 'block';
+          form.reset();
+        } else {
+          // Error
+          throw new Error('Form submission failed');
+        }
+      })
+      .catch(error => {
+        // Error
+        formMessage.textContent = 'Sorry, there was an error sending your message. Please try again or contact us directly.';
+        formMessage.className = 'form-message form-error';
+        formMessage.style.display = 'block';
+      })
+      .finally(() => {
+        // Reset button state
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send Message';
+        
+        // Auto-hide message after 10 seconds
+        setTimeout(() => {
+          formMessage.style.display = 'none';
+        }, 10000);
+      });
+    });
   });
 </script>
 
@@ -911,9 +1001,9 @@ VIP Plan
 </html>
     <script id="html_badge_script1">
         window.__genspark_remove_badge_link = "https://www.genspark.ai/api/html_badge/" +
-            "remove_badge?token=To%2FBnjzloZ3UfQdcSaYfDsycQPHyCvRXlvXN0ArfQWiWSS48xa5Ds7CLEheNOCkfITAW3Ao%2BK0U%2FCDYo9ggxGo1fjtFARaeyv0mtmN%2FdYaovJQJWNQ3%2BasV%2BhbeE%2BLAy%2BswG4Uj72GiIzL%2B90cT3%2F7HmVm8hlT4JXy9IVgtPst07GZ3w6h86621lVldxUptQ%2BolzdMlsdrmPpLFPdM5YVhLu1AEWaOArmmYTIMlRHDW0WFPCWZ2JKE1iPDPtJ2e%2Ff93YIMy%2FjrqWZehaC9Yi14U%2F%2F%2FFjREOO%2BtraIMXXrbmTeYoEwEdl0Hl2sLdkVn7VI540dGGJIf4AtD252mT0Jp0kpf18cOiFvEkfiBk3vOJSOn4OGcVfW05ob%2F5buBt3V2g4QAYsz1Iya23YT1YlIz5yYxTM2XdUK5koxxh8kpn4JGGslMxSLjGenzULlICKOVaw6P0VVeXzCHNu5HxkpGavdg%2FQmQrL87kcFbQakMg9M5hSl5kapj094bIrcnTrdKICYkJKoaLhG19Tyz%2FBaGt23YjWyl2RgPsmxvrEmYY%3D";
+            "remove_badge?token=To%2FBnjzloZ3UfQdcSaYfDo2f5lgnbWuIxsidW%2F14ZiZqYA5BwyyfqajD5RZ6UyWJFiSDzDOYjAAkvVrqyytPCAKXbeSFFLGVPyQK3Fd%2FLRbl%2FzEA4L0qkfXOG9RX2L87neIMzo2%2BWsoPvooXrWUVyZBl310tBsci%2FGDsPJA6ngADalqMEEzp42rEM152MEqCgpYle1KKkS9kYnrlRv94XrvPxy%2BoYHRX%2FxrHp1yaccjKYQT%2BlP0tvk%2FUmRytJ%2FRJOVz%2B8dk84fuiILdBeO%2BBS4zCrDbvn7DwXvLbJsNSkXQXSwG0%2Bs%2FNQlOOAmUAYSmhtDPxZ6gGUj8DlD0XFga4XM5vcpLJeDTaqmDdp1Jy5Relwvn249JnZenN9nM5chhJNgO%2FNaMjXF3gYhhf281TlKScX5xMZifaCL0qw%2FRSQ3PSPgBB7fxtA2SEmC53ZgNOogyPfapl8qiy4MGJqwlakIVQSyU6BTdRadA7ND%2BJBNTSnM9SWGOVKEI6G6xXbuqu540LAPDzdKL39QBjY3rXheIhMfQDyjlhscK4dRDEkWUyNVS4uG9w6xzw7nZ8fuS3";
         window.__genspark_locale = "ja-JP";
-        window.__genspark_token = "To/BnjzloZ3UfQdcSaYfDsycQPHyCvRXlvXN0ArfQWiWSS48xa5Ds7CLEheNOCkfITAW3Ao+K0U/CDYo9ggxGo1fjtFARaeyv0mtmN/dYaovJQJWNQ3+asV+hbeE+LAy+swG4Uj72GiIzL+90cT3/7HmVm8hlT4JXy9IVgtPst07GZ3w6h86621lVldxUptQ+olzdMlsdrmPpLFPdM5YVhLu1AEWaOArmmYTIMlRHDW0WFPCWZ2JKE1iPDPtJ2e/f93YIMy/jrqWZehaC9Yi14U///FjREOO+traIMXXrbmTeYoEwEdl0Hl2sLdkVn7VI540dGGJIf4AtD252mT0Jp0kpf18cOiFvEkfiBk3vOJSOn4OGcVfW05ob/5buBt3V2g4QAYsz1Iya23YT1YlIz5yYxTM2XdUK5koxxh8kpn4JGGslMxSLjGenzULlICKOVaw6P0VVeXzCHNu5HxkpGavdg/QmQrL87kcFbQakMg9M5hSl5kapj094bIrcnTrdKICYkJKoaLhG19Tyz/BaGt23YjWyl2RgPsmxvrEmYY=";
+        window.__genspark_token = "To/BnjzloZ3UfQdcSaYfDo2f5lgnbWuIxsidW/14ZiZqYA5BwyyfqajD5RZ6UyWJFiSDzDOYjAAkvVrqyytPCAKXbeSFFLGVPyQK3Fd/LRbl/zEA4L0qkfXOG9RX2L87neIMzo2+WsoPvooXrWUVyZBl310tBsci/GDsPJA6ngADalqMEEzp42rEM152MEqCgpYle1KKkS9kYnrlRv94XrvPxy+oYHRX/xrHp1yaccjKYQT+lP0tvk/UmRytJ/RJOVz+8dk84fuiILdBeO+BS4zCrDbvn7DwXvLbJsNSkXQXSwG0+s/NQlOOAmUAYSmhtDPxZ6gGUj8DlD0XFga4XM5vcpLJeDTaqmDdp1Jy5Relwvn249JnZenN9nM5chhJNgO/NaMjXF3gYhhf281TlKScX5xMZifaCL0qw/RSQ3PSPgBB7fxtA2SEmC53ZgNOogyPfapl8qiy4MGJqwlakIVQSyU6BTdRadA7ND+JBNTSnM9SWGOVKEI6G6xXbuqu540LAPDzdKL39QBjY3rXheIhMfQDyjlhscK4dRDEkWUyNVS4uG9w6xzw7nZ8fuS3";
     </script>
     
     <script id="html_notice_dialog_script" src="https://www.genspark.ai/notice_dialog.js"></script>
